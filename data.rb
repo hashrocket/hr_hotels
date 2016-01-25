@@ -10,6 +10,8 @@ DB = Sequel.postgres host: 'localhost', password: '123', user: 'dev', database: 
 NUMBER_OF_ROOMS = 20
 ROOM_NUMBER_FORMAT = "%0.#{NUMBER_OF_ROOMS.to_s.size}d"
 
+RANDOM = Random.new(1234)
+
 DB.run('truncate hotels restart identity cascade;')
 
 def create_hotel
@@ -33,7 +35,7 @@ def create_reservation(hotel_id:, section_id:, room_id:, days:)
 end
 
 def two_day_stay_in_january_2050
-  start = Date.new(2050, 1, rand(25) + 5)
+  start = Date.new(2050, 1, RANDOM.rand(25) + 5)
   finish = (start + 2)
   Sequel::Postgres::PGRange.new(start, finish)
 end
