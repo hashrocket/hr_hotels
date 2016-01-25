@@ -9,10 +9,12 @@ require 'sequel/extensions/pg_range'
 DB = Sequel.postgres host: 'localhost', password: '123', user: 'dev', database: 'hr_hotels'
 NUMBER_OF_ROOMS = 20
 ROOM_NUMBER_FORMAT = "%0.#{NUMBER_OF_ROOMS.to_s.size}d"
+CUSTOMER_SIZE = 1000
 
-RANDOM = Random.new(1234)
+srand(1234) # seed the global random instance used by FFaker
+RANDOM = Random.new(1234) #seed our own random instance
 
-DB.run('truncate hotels restart identity cascade;')
+DB.run('truncate customers, hotels restart identity cascade;')
 
 def create_hotel
   hotels = DB[:hotels]
@@ -31,13 +33,27 @@ end
 
 def create_reservation(hotel_id:, section_id:, room_id:, days:)
   reservations = DB[:reservations]
-  reservations.insert hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: days
+  reservations.insert hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: days, customer_id: RANDOM.rand(CUSTOMER_SIZE) + 1
 end
 
 def two_day_stay_in_january_2050
   start = Date.new(2050, 1, RANDOM.rand(25) + 5)
   finish = (start + 2)
   Sequel::Postgres::PGRange.new(start, finish)
+end
+
+def create_customer(first_name:, last_name:, email:, phone_number:)
+  customers = DB[:customers]
+  customers.insert first_name: first_name, last_name: last_name, email: email, phone_number: phone_number
+end
+
+CUSTOMER_SIZE.times do
+  first_name = FFaker::Name.first_name
+  last_name = FFaker::Name.last_name
+  email = FFaker::Internet.email
+  phone_number = FFaker::PhoneNumber.short_phone_number
+
+  create_customer(first_name: first_name, last_name: last_name, email: email, phone_number: phone_number)
 end
 
 # TODO: Needs command line output so that the user can be more aware of what this
