@@ -6,7 +6,7 @@ Bundler.require
 
 DB = Sequel.postgres host: 'localhost', password: '123', user: 'dev', database: 'hr_hotels'
 
-DB.run('truncate sections restart identity cascade')
+DB.run('truncate hotels restart identity cascade;')
 
 def create_hotel
   hotels = DB[:hotels]
