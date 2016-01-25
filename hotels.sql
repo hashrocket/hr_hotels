@@ -2,6 +2,7 @@
 
 drop table if exists reservations cascade;
 drop table if exists rooms cascade;
+drop table if exists bedding_types;
 drop table if exists sections;
 drop table if exists hotels;
 drop table if exists customers;
@@ -32,11 +33,16 @@ create table sections(
   primary key (hotel_id, id)
 );
 
+create table bedding_types (
+  name varchar primary key
+);
+
 create table rooms (
   hotel_id integer not null,
   section_id integer not null,
   id serial,
   name varchar not null,
+  bedding_type varchar not null references bedding_types(name),
   foreign key (hotel_id, section_id) references sections,
   primary key (hotel_id, section_id, id)
 );

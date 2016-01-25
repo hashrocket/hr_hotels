@@ -14,7 +14,23 @@ CUSTOMER_SIZE = 1000
 srand(1234) # seed the global random instance used by FFaker
 RANDOM = Random.new(1234) #seed our own random instance
 
-DB.run('truncate customers, hotels restart identity cascade;')
+DB.run('truncate bedding_types, customers, hotels restart identity cascade;')
+
+BEDDING_TYPES = [
+  "No Bed",
+  "1 Full",
+  "1 Double",
+  "2 Double",
+  "1 Twin",
+  "2 Twins",
+  "1 Queen",
+  "2 Queen",
+  "1 King",
+  "2 Kings",
+  "3 Kings",
+  "Murphy",
+  "Sofa Bed"
+].freeze
 
 def create_hotel
   hotels = DB[:hotels]
@@ -28,7 +44,7 @@ end
 
 def create_room(hotel_id:, section_id:, name:)
   rooms = DB[:rooms].returning(:id)
-  rooms.insert hotel_id: hotel_id, name: "Room #{name}", section_id: section_id
+  rooms.insert hotel_id: hotel_id, name: "Room #{name}", section_id: section_id, bedding_type: BEDDING_TYPES.sample
 end
 
 def create_reservation(hotel_id:, section_id:, room_id:, days:)
@@ -45,6 +61,11 @@ end
 def create_customer(first_name:, last_name:, email:, phone_number:)
   customers = DB[:customers]
   customers.insert first_name: first_name, last_name: last_name, email: email, phone_number: phone_number
+end
+
+BEDDING_TYPES.each do |bt|
+  types = DB[:bedding_types]
+  types.insert(name: bt)
 end
 
 CUSTOMER_SIZE.times do
