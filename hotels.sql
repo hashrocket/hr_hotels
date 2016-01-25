@@ -1,7 +1,7 @@
 -- DDL for hotels
 
-drop table if exists reservations;
-drop table if exists rooms;
+drop table if exists reservations cascade;
+drop table if exists rooms cascade;
 drop table if exists sections;
 drop table if exists hotels;
 drop extension if exists btree_gist;

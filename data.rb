@@ -32,6 +32,12 @@ def create_reservation(hotel_id:, section_id:, room_id:, days:)
   reservations.insert hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: days
 end
 
+def two_day_stay_in_january_2050
+  start = Date.new(2050, 1, rand(25) + 5)
+  finish = (start + 2)
+  Sequel::Postgres::PGRange.new(start, finish)
+end
+
 # TODO: Needs command line output so that the user can be more aware of what this
 # script is doing
 100.times do
@@ -45,6 +51,7 @@ end
       room_id = create_room(hotel_id: hotel_id, section_id: section_id, name: "#{floor}#{sprintf(ROOM_NUMBER_FORMAT, room_number)}").dig(0, :id)
       range = Sequel::Postgres::PGRange.new(Date.new(2050, 1, 1), Date.new(2050, 1, 4))
       create_reservation(hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: range)
+      create_reservation(hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: two_day_stay_in_january_2050)
     end
   end
 end
