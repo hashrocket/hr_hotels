@@ -12,6 +12,7 @@ create table hotels (
   id serial primary key
 );
 
+-- TODO: Describe reasoning for creating sections better
 create table sections(
   hotel_id integer references hotels,
   id serial,
@@ -37,6 +38,6 @@ create table reservations (
   room_id integer,
   days daterange,
   foreign key (hotel_id, section_id, room_id) references rooms,
-  constraint valid_days check (days <@ daterange('1900-01-01', '2100-01-01')),
+  constraint valid_days check (days <@ daterange('1900-01-01', '2100-01-01')), -- days must be within this range and additionally neither bound can be null
   exclude using gist (room_id with =, days with &&) -- exclude expression from being true between rows.  room_id must be unique for this daterange.
 );
