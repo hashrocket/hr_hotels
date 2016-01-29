@@ -7,9 +7,10 @@ drop table if exists sections;
 drop table if exists hotels;
 drop table if exists customers;
 drop extension if exists btree_gist;
+drop extension if exists citext;
 
-create extension if not exists btree_gist;  -- gist by itself does not include integer equality.  this is necssary for the reservation exclusion constraint.
-create extension if not exists citext; -- store and compare text in a case insensitive way, for fields like emails where C@example.com is the same as c@example.com
+create extension btree_gist;  -- gist by itself does not include integer equality.  this is necssary for the reservation exclusion constraint.
+create extension citext; -- store and compare text in a case insensitive way, for fields like emails where C@example.com is the same as c@example.com
 
 create table customers (
   id serial primary key,
