@@ -64,6 +64,37 @@ def create_customer(first_name:, last_name:, email:, phone_number:)
   customers.insert first_name: first_name, last_name: last_name, email: email, phone_number: phone_number
 end
 
+def create_bedding_price_type(hotel_id:, bedding_type:, applied_period:, monday_price: 10, tuesday_price: 10, wednesday_price: 10, thursday_price: 10, friday_price: 100, saturday_price: 100, sunday_price: 1)
+  bedding_type_prices = DB[:bedding_type_prices]
+  bedding_type_prices.insert(
+    hotel_id: hotel_id,
+    bedding_type: bedding_type,
+    applied_period: applied_period,
+    monday_price: monday_price,
+    tuesday_price: tuesday_price,
+    wednesday_price: wednesday_price,
+    thursday_price: thursday_price,
+    friday_price: friday_price,
+    saturday_price: saturday_price,
+    sunday_price: sunday_price
+  )
+end
+
+def create_base_bedding_price_type(hotel_id:, bedding_type:, monday_price: 10, tuesday_price: 10, wednesday_price: 10, thursday_price: 10, friday_price: 100, saturday_price: 100, sunday_price: 1)
+  bedding_type_prices = DB[:base_bedding_type_prices]
+  bedding_type_prices.insert(
+    hotel_id: hotel_id,
+    bedding_type: bedding_type,
+    monday_price: monday_price,
+    tuesday_price: tuesday_price,
+    wednesday_price: wednesday_price,
+    thursday_price: thursday_price,
+    friday_price: friday_price,
+    saturday_price: saturday_price,
+    sunday_price: sunday_price
+  )
+end
+
 BEDDING_TYPES.each do |bt|
   types = DB[:bedding_types]
   types.insert(name: bt)
@@ -93,5 +124,37 @@ end
       create_reservation(hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: range)
       create_reservation(hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: two_day_stay_in_january_2050)
     end
+  end
+
+  BEDDING_TYPES.each do |bt|
+    start = Date.new(2050,6,1)
+    finish = Date.new(2050,9,1)
+    weekday_price = 100 * 1.5
+    weekend_price = 150 * 1.5
+    sunday_price = 50 * 1.5
+    create_bedding_price_type(hotel_id: hotel_id, bedding_type: bt, applied_period: Sequel::Postgres::PGRange.new(start, finish),
+                                monday_price: weekday_price,
+                                tuesday_price: weekday_price,
+                                wednesday_price: weekday_price,
+                                thursday_price: weekday_price,
+                                friday_price: weekend_price,
+                                saturday_price: weekend_price,
+                                sunday_price: sunday_price
+                             )
+  end
+
+  BEDDING_TYPES.each do |bt|
+    weekday_price = 100
+    weekend_price = 150
+    sunday_price = 50
+    create_base_bedding_price_type(hotel_id: hotel_id, bedding_type: bt,
+                                monday_price: weekday_price,
+                                tuesday_price: weekday_price,
+                                wednesday_price: weekday_price,
+                                thursday_price: weekday_price,
+                                friday_price: weekend_price,
+                                saturday_price: weekend_price,
+                                sunday_price: sunday_price
+                             )
   end
 end

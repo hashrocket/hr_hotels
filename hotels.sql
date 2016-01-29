@@ -2,6 +2,8 @@
 
 drop table if exists reservations cascade;
 drop table if exists rooms cascade;
+drop table if exists bedding_type_prices;
+drop table if exists base_bedding_type_prices;
 drop table if exists bedding_types;
 drop table if exists sections;
 drop table if exists hotels;
@@ -46,6 +48,37 @@ create table rooms (
   bedding_type varchar not null references bedding_types(name),
   foreign key (hotel_id, section_id) references sections,
   primary key (hotel_id, section_id, id)
+);
+
+-- 1/1 - 12/31
+-- 3/25 - 4/1
+-- 3/24 - 3/25
+create table bedding_type_prices (
+  hotel_id integer not null,
+  bedding_type varchar not null references bedding_types(name),
+  applied_period daterange not null,
+  monday_price numeric(8,2) not null,
+  tuesday_price numeric(8,2) not null,
+  wednesday_price numeric(8,2) not null,
+  thursday_price numeric(8,2) not null,
+  friday_price numeric(8,2) not null,
+  saturday_price numeric(8,2) not null,
+  sunday_price numeric(8,2) not null,
+  primary key (hotel_id, bedding_type, applied_period),
+  exclude using gist (hotel_id with =, bedding_type with =, applied_period with &&)
+);
+
+create table base_bedding_type_prices (
+  hotel_id integer not null,
+  bedding_type varchar not null references bedding_types(name),
+  monday_price numeric(8,2) not null,
+  tuesday_price numeric(8,2) not null,
+  wednesday_price numeric(8,2) not null,
+  thursday_price numeric(8,2) not null,
+  friday_price numeric(8,2) not null,
+  saturday_price numeric(8,2) not null,
+  sunday_price numeric(8,2) not null,
+  primary key (hotel_id, bedding_type)
 );
 
 create table reservations (
