@@ -1,3 +1,3 @@
 # hr_hotels
-Example database for hotels.
 
+> Example database for hotels
