@@ -1,0 +1,1 @@
+select sum(day_price) from stay_days('2050-2-1', '2050-2-5') inner join pivoted_prices on dow = day where hotel_id = 1 and bedding_type = '1 Full';

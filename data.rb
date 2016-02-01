@@ -7,7 +7,7 @@ Bundler.require
 
 require 'sequel/extensions/pg_range'
 
-DB = Sequel.postgres host: 'localhost', password: '123', user: 'dev', database: 'hr_hotels'
+DB = Sequel.postgres host: 'localhost', database: 'hr_hotels'
 NUMBER_OF_ROOMS = 20
 ROOM_NUMBER_FORMAT = "%0.#{NUMBER_OF_ROOMS.to_s.size}d"
 CUSTOMER_SIZE = 1000
