@@ -33,9 +33,112 @@ BEDDING_TYPES = [
   "Sofa Bed"
 ].freeze
 
-def create_hotel
+CITIES = [
+'New York City, New York',
+'Los Angeles, California',
+'Chicago, Illinois',
+'Houston, Texas',
+'Philadelphia, Pennsylvania',
+'Phoenix, Arizona',
+'San Antonio, Texas',
+'San Diego, California',
+'Dallas, Texas',
+'San Jose, California',
+'Austin, Texas',
+'Jacksonville, Florida',
+'Indianapolis, Indiana',
+'San Francisco, California',
+'Columbus, Ohio',
+'Fort Worth, Texas',
+'Charlotte, North Carolina',
+'Detroit, Michigan',
+'El Paso, Texas',
+'Memphis, Tennessee',
+'Boston, Massachusetts',
+'Seattle, Washington',
+'Denver, Colorado',
+'Washington, DC',
+'Nashville-Davidson, Tennessee',
+'Baltimore, Maryland',
+'Louisville/Jefferson, Kentucky',
+'Portland, Oregon',
+'Oklahoma , Oklahoma',
+'Milwaukee, Wisconsin',
+'Las Vegas, Nevada',
+'Albuquerque, New Mexico',
+'Tucson, Arizona',
+'Fresno, California',
+'Sacramento, California',
+'Long Beach, California',
+'Kansas , Missouri',
+'Mesa, Arizona',
+'Virginia Beach, Virginia',
+'Atlanta, Georgia',
+'Colorado Springs, Colorado',
+'Raleigh, North Carolina',
+'Omaha, Nebraska',
+'Miami, Florida',
+'Oakland, California',
+'Tulsa, Oklahoma',
+'Minneapolis, Minnesota',
+'Cleveland, Ohio',
+'Wichita, Kansas',
+'Arlington, Texas',
+'New Orleans, Louisiana',
+'Bakersfield, California',
+'Tampa, Florida',
+'Honolulu, Hawaii',
+'Anaheim, California',
+'Aurora, Colorado',
+'Santa Ana, California',
+'St. Louis, Missouri',
+'Riverside, California',
+'Corpus Christi, Texas',
+'Pittsburgh, Pennsylvania',
+'Lexington-Fayette, Kentucky',
+'Anchorage municipality, Alaska',
+'Stockton, California',
+'Cincinnati, Ohio',
+'St. Paul, Minnesota',
+'Toledo, Ohio',
+'Newark, New Jersey',
+'Greensboro, North Carolina',
+'Plano, Texas',
+'Henderson, Nevada',
+'Lincoln, Nebraska',
+'Buffalo, New York',
+'Fort Wayne, Indiana',
+'Jersey , New Jersey',
+'Chula Vista, California',
+'Orlando, Florida',
+'St. Petersburg, Florida',
+'Norfolk, Virginia',
+'Chandler, Arizona',
+'Laredo, Texas',
+'Madison, Wisconsin',
+'Durham, North Carolina',
+'Lubbock, Texas',
+'Winston-Salem, North Carolina',
+'Garland, Texas',
+'Glendale, Arizona',
+'Hialeah, Florida',
+'Reno, Nevada',
+'Baton Rouge, Louisiana',
+'Irvine, California',
+'Chesapeake, Virginia',
+'Irving, Texas',
+'Scottsdale, Arizona',
+'North Las Vegas, Nevada',
+'Fremont, California',
+'Gilbert town, Arizona',
+'San Bernardino, California',
+'Boise, Idaho',
+'Birmingham, Alabama'
+]
+
+def create_hotel(index)
   hotels = DB[:hotels]
-  hotels.insert
+  hotels.insert address1: '10 Main st.', city: CITIES[index].split(?,)[0], state: CITIES[index].split(?,)[1]
 end
 
 def create_section(hotel_id:, floor:, name:)
@@ -111,8 +214,8 @@ end
 
 # TODO: Needs command line output so that the user can be more aware of what this
 # script is doing
-100.times do
-  hotel_id = create_hotel
+100.times do |hotel_index|
+  hotel_id = create_hotel hotel_index
 
   5.times do |floor|
     section_id = create_section(hotel_id: hotel_id, floor: floor, name: "Floor #{floor}").dig(0, :id)

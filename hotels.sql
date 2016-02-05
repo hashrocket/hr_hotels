@@ -23,7 +23,11 @@ create table customers (
 );
 
 create table hotels (
-  id serial primary key
+  id serial primary key,
+  address1 varchar not null,
+  address2 varchar,
+  city varchar not null,
+  state varchar not null
 );
 
 -- TODO: Describe reasoning for creating sections better
