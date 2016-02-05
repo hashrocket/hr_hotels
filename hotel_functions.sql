@@ -14,4 +14,11 @@ BEGIN
 
   RETURN occupancy_percentage;
 END;
-$$  LANGUAGE plpgsql
+$$  LANGUAGE plpgsql;
+
+CREATE or REPLACE FUNCTION stay_days(date, date)
+RETURNS table(dow int) AS $$
+BEGIN
+  return query select date_part('dow', a.x)::integer as dow from generate_series($1, $2, '1 day') as a(x);
+END;
+$$  LANGUAGE plpgsql;

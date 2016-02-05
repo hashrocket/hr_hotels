@@ -8,3 +8,7 @@ select s.a::date as day, chainwide_occupancy(s.a::date) as occupancy_percentage 
 drop view if exists fast_occupancy;
 create view fast_occupancy as
 select s.a, count(days)::float / (select count(*) from rooms) * 100 from generate_series('2050-1-1'::date, '2059-12-31'::date, '1 day') as s(a) left join reservations on reservations.days @> s.a::date group by s.a order by s.a;
+
+drop view if exists pivoted_prices;
+create view pivoted_prices as
+select generate_subscripts(ARRAY[1,2,3,4,5,6,7],1) - 1 as day, unnest(ARRAY[monday_price, tuesday_price, wednesday_price, thursday_price, friday_price, saturday_price, sunday_price]) as day_price, hotel_id, bedding_type from base_bedding_type_prices;
