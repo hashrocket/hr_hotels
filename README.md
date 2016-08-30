@@ -5,6 +5,6 @@
 ## Setup
 
 ```bash
-$ dbcreate hr_hotels
+$ createdb hr_hotels
 $ psql hr_hotels -f hotels.sql
 ```
