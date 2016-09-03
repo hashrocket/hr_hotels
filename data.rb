@@ -57,7 +57,6 @@ CITIES = [
 'Boston, Massachusetts',
 'Seattle, Washington',
 'Denver, Colorado',
-'Washington, DC',
 'Nashville-Davidson, Tennessee',
 'Baltimore, Maryland',
 'Louisville/Jefferson, Kentucky',
@@ -123,22 +122,107 @@ CITIES = [
 'Glendale, Arizona',
 'Hialeah, Florida',
 'Reno, Nevada',
-'Baton Rouge, Louisiana',
 'Irvine, California',
 'Chesapeake, Virginia',
 'Irving, Texas',
 'Scottsdale, Arizona',
 'North Las Vegas, Nevada',
 'Fremont, California',
-'Gilbert town, Arizona',
 'San Bernardino, California',
 'Boise, Idaho',
-'Birmingham, Alabama'
+'Birmingham, Alabama',
+'Dayton, Ohio',
+'Akron, Ohio',
+'Youngstown, Ohio'
 ]
+
+STATE_ABBRS = {
+  "Alaska" => "AK",
+  "Alabama" => "AL",
+  "Arkansas" => "AR",
+  "American Samoa" => "AS",
+  "Arizona" => "AZ",
+  "California" => "CA",
+  "Colorado" => "CO",
+  "Connecticut" => "CT",
+  "District of Columbia" => "DC",
+  "Delaware" => "DE",
+  "Florida" => "FL",
+  "Georgia" => "GA",
+  "Guam" => "GU",
+  "Hawaii" => "HI",
+  "Iowa" => "IA",
+  "Idaho" => "ID",
+  "Illinois" => "IL",
+  "Indiana" => "IN",
+  "Kansas" => "KS",
+  "Kentucky" => "KY",
+  "Louisiana" => "LA",
+  "Massachusetts" => "MA",
+  "Maryland" => "MD",
+  "Maine" => "ME",
+  "Michigan" => "MI",
+  "Minnesota" => "MN",
+  "Missouri" => "MO",
+  "Mississippi" => "MS",
+  "Montana" => "MT",
+  "North Carolina" => "NC",
+  "North Dakota" => "ND",
+  "Nebraska" => "NE",
+  "New Hampshire" => "NH",
+  "New Jersey" => "NJ",
+  "New Mexico" => "NM",
+  "Nevada" => "NV",
+  "New York" => "NY",
+  "Ohio" => "OH",
+  "Oklahoma" => "OK",
+  "Oregon" => "OR",
+  "Pennsylvania" => "PA",
+  "Puerto Rico" => "PR",
+  "Rhode Island" => "RI",
+  "South Carolina" => "SC",
+  "South Dakota" => "SD",
+  "Tennessee" => "TN",
+  "Texas" => "TX",
+  "Utah" => "UT",
+  "Virginia" => "VA",
+  "Virgin Islands" => "VI",
+  "Vermont" => "VT",
+  "Washington" => "WA",
+  "Wisconsin" => "WI",
+  "West Virginia" => "WV",
+  "Wyoming" => "WY"
+}
+
+require 'faraday'
+require 'faraday_middleware'
+
+CONN = Faraday.new(url: 'http://maps.googleapis.com') do |faraday|
+  faraday.adapter Faraday.default_adapter
+  faraday.response :json
+end
+
+def get_address_extras(address, city, state)
+  response = CONN.get('/maps/api/geocode/json', address: "#{address},#{city},#{state}")
+  location = response.body['results'][0]['geometry']['location']
+  postal_code = response.body['results'][0]['address_components'].find {|group| group['types'] == ['postal_code']}['short_name']
+  return location, postal_code
+end
 
 def create_hotel(index)
   hotels = DB[:hotels]
-  hotels.insert address1: '10 Main st.', city: CITIES[index].split(?,)[0], state: CITIES[index].split(?,)[1]
+  city = CITIES[index].split(?,)[0]
+  state = STATE_ABBRS[CITIES[index].split(?,)[1].strip]
+  address = '10 Main st.'
+
+  location, postal_code = get_address_extras(address, city, state)
+
+  lat = location["lat"]
+  lng = location["lng"]
+
+  id = DB["insert into hotels (address1, city, state, zipcode, coordinates) values ('#{address}', '#{city}', '#{state}', '#{postal_code}', ST_SetSRID(ST_MakePoint(#{lat},#{lng}), 4326)) returning id;"]
+
+  return id[:id][:id]
 end
 
 def create_section(hotel_id:, floor:, name:)

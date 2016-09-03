@@ -13,6 +13,7 @@ drop extension if exists citext;
 
 create extension btree_gist;  -- gist by itself does not include integer equality.  this is necssary for the reservation exclusion constraint.
 create extension citext; -- store and compare text in a case insensitive way, for fields like emails where C@example.com is the same as c@example.com
+create extension postgis;
 
 create table customers (
   id serial primary key,
@@ -27,7 +28,9 @@ create table hotels (
   address1 varchar not null,
   address2 varchar,
   city varchar not null,
-  state varchar not null
+  state varchar not null,
+  zipcode varchar not null,
+  coordinates geometry(POINT, 4326) not null
 );
 
 -- TODO: Describe reasoning for creating sections better
