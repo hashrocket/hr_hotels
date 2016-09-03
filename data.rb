@@ -282,66 +282,84 @@ def create_base_bedding_price_type(hotel_id:, bedding_type:, monday_price: 10, t
   )
 end
 
-BEDDING_TYPES.each do |bt|
-  types = DB[:bedding_types]
-  types.insert(name: bt)
+def progress_bar
+  @progress_bar ||= ProgressBar.create(format: '%t - %B> %p%%')
 end
 
-CUSTOMER_SIZE.times do
-  first_name = FFaker::Name.first_name
-  last_name = FFaker::Name.last_name
-  email = FFaker::Internet.email
-  phone_number = FFaker::PhoneNumber.short_phone_number
-
-  create_customer(first_name: first_name, last_name: last_name, email: email, phone_number: phone_number)
+def progressify(progress_bar, title, total)
+  progress_bar.title = title
+  progress_bar.total = total
+  yield progress_bar
+  progress_bar.reset
 end
 
-# TODO: Needs command line output so that the user can be more aware of what this
-# script is doing
-100.times do |hotel_index|
-  hotel_id = create_hotel hotel_index
+progressify(progress_bar, 'Bedding Types', BEDDING_TYPES.count) do |progress|
+  BEDDING_TYPES.each do |bt|
+    progress.increment
+    types = DB[:bedding_types]
+    types.insert(name: bt)
+  end
+end
 
-  5.times do |floor|
-    section_id = create_section(hotel_id: hotel_id, floor: floor, name: "Floor #{floor}").dig(0, :id)
+progressify(progress_bar, 'Customers', CUSTOMER_SIZE) do |progress|
+  CUSTOMER_SIZE.times do
+    progress.increment
+    first_name = FFaker::Name.first_name
+    last_name = FFaker::Name.last_name
+    email = FFaker::Internet.email
+    phone_number = FFaker::PhoneNumber.short_phone_number
 
-    # TODO: batch insert the reservations
-    NUMBER_OF_ROOMS.times do |room_number|
-      room_id = create_room(hotel_id: hotel_id, section_id: section_id, name: "#{floor}#{sprintf(ROOM_NUMBER_FORMAT, room_number)}").dig(0, :id)
-      range = Sequel::Postgres::PGRange.new(Date.new(2050, 1, 1), Date.new(2050, 1, 4))
-      create_reservation(hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: range)
-      create_reservation(hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: two_day_stay_in_january_2050)
+    create_customer(first_name: first_name, last_name: last_name, email: email, phone_number: phone_number)
+  end
+end
+
+progressify(progress_bar, 'Hotels', 100) do |progress|
+  100.times do |hotel_index|
+    progress.increment
+    hotel_id = create_hotel hotel_index
+
+    5.times do |floor|
+      section_id = create_section(hotel_id: hotel_id, floor: floor, name: "Floor #{floor}").dig(0, :id)
+
+      # TODO: batch insert the reservations
+      NUMBER_OF_ROOMS.times do |room_number|
+        room_id = create_room(hotel_id: hotel_id, section_id: section_id, name: "#{floor}#{sprintf(ROOM_NUMBER_FORMAT, room_number)}").dig(0, :id)
+        range = Sequel::Postgres::PGRange.new(Date.new(2050, 1, 1), Date.new(2050, 1, 4))
+        create_reservation(hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: range)
+        create_reservation(hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: two_day_stay_in_january_2050)
+      end
     end
-  end
 
-  BEDDING_TYPES.each do |bt|
-    start = Date.new(2050,6,1)
-    finish = Date.new(2050,9,1)
-    weekday_price = 100 * 1.5
-    weekend_price = 150 * 1.5
-    sunday_price = 50 * 1.5
-    create_bedding_price_type(hotel_id: hotel_id, bedding_type: bt, applied_period: Sequel::Postgres::PGRange.new(start, finish),
-                                monday_price: weekday_price,
-                                tuesday_price: weekday_price,
-                                wednesday_price: weekday_price,
-                                thursday_price: weekday_price,
-                                friday_price: weekend_price,
-                                saturday_price: weekend_price,
-                                sunday_price: sunday_price
-                             )
-  end
+    BEDDING_TYPES.each do |bt|
+      start = Date.new(2050,6,1)
+      finish = Date.new(2050,9,1)
+      weekday_price = 100 * 1.5
+      weekend_price = 150 * 1.5
+      sunday_price = 50 * 1.5
+      create_bedding_price_type(hotel_id: hotel_id, bedding_type: bt, applied_period: Sequel::Postgres::PGRange.new(start, finish),
+                                  monday_price: weekday_price,
+                                  tuesday_price: weekday_price,
+                                  wednesday_price: weekday_price,
+                                  thursday_price: weekday_price,
+                                  friday_price: weekend_price,
+                                  saturday_price: weekend_price,
+                                  sunday_price: sunday_price
+                               )
+    end
 
-  BEDDING_TYPES.each do |bt|
-    weekday_price = 100
-    weekend_price = 150
-    sunday_price = 50
-    create_base_bedding_price_type(hotel_id: hotel_id, bedding_type: bt,
-                                monday_price: weekday_price,
-                                tuesday_price: weekday_price,
-                                wednesday_price: weekday_price,
-                                thursday_price: weekday_price,
-                                friday_price: weekend_price,
-                                saturday_price: weekend_price,
-                                sunday_price: sunday_price
-                             )
+    BEDDING_TYPES.each do |bt|
+      weekday_price = 100
+      weekend_price = 150
+      sunday_price = 50
+      create_base_bedding_price_type(hotel_id: hotel_id, bedding_type: bt,
+                                  monday_price: weekday_price,
+                                  tuesday_price: weekday_price,
+                                  wednesday_price: weekday_price,
+                                  thursday_price: weekday_price,
+                                  friday_price: weekend_price,
+                                  saturday_price: weekend_price,
+                                  sunday_price: sunday_price
+                               )
+    end
   end
 end
