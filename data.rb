@@ -17,21 +17,21 @@ RANDOM = Random.new(1234) #seed our own random instance
 
 DB.run('truncate bedding_types, customers, hotels restart identity cascade;')
 
-BEDDING_TYPES = [
-  "No Bed",
-  "1 Full",
-  "1 Double",
-  "2 Double",
-  "1 Twin",
-  "2 Twins",
-  "1 Queen",
-  "2 Queen",
-  "1 King",
-  "2 Kings",
-  "3 Kings",
-  "Murphy",
-  "Sofa Bed"
-].freeze
+BEDDING_TYPES = {
+  "No Bed" => -0.5,
+  "1 Full" => -0.2,
+  "1 Double" => -0.1,
+  "2 Double" => 0,
+  "1 Twin" => -0.2,
+  "2 Twins" => -0.05,
+  "1 Queen" => 0.2,
+  "2 Queen" => 0.3,
+  "1 King" => 0.5,
+  "2 Kings" => 1.0,
+  "3 Kings" => 1.5,
+  "Murphy" => -0.3,
+  "Sofa Bed" => -0.2
+}.freeze
 
 CITIES = [
 'New York City, New York',
@@ -232,7 +232,7 @@ end
 
 def create_room(hotel_id:, section_id:, name:)
   rooms = DB[:rooms].returning(:id)
-  rooms.insert hotel_id: hotel_id, name: "Room #{name}", section_id: section_id, bedding_type: BEDDING_TYPES.sample
+  rooms.insert hotel_id: hotel_id, name: "Room #{name}", section_id: section_id, bedding_type: BEDDING_TYPES.keys.sample
 end
 
 def create_reservation(hotel_id:, section_id:, room_id:, days:)
@@ -294,7 +294,7 @@ def progressify(progress_bar, title, total)
 end
 
 progressify(progress_bar, 'Bedding Types', BEDDING_TYPES.count) do |progress|
-  BEDDING_TYPES.each do |bt|
+  BEDDING_TYPES.keys.each do |bt|
     progress.increment
     types = DB[:bedding_types]
     types.insert(name: bt)
@@ -330,36 +330,52 @@ progressify(progress_bar, 'Hotels', 100) do |progress|
       end
     end
 
-    BEDDING_TYPES.each do |bt|
+    hotel_price_adjustor = 1.5
+
+    BEDDING_TYPES.each do |bt, adjustor|
       start = Date.new(2050,6,1)
       finish = Date.new(2050,9,1)
-      weekday_price = 100 * 1.5
-      weekend_price = 150 * 1.5
-      sunday_price = 50 * 1.5
-      create_bedding_price_type(hotel_id: hotel_id, bedding_type: bt, applied_period: Sequel::Postgres::PGRange.new(start, finish),
-                                  monday_price: weekday_price,
-                                  tuesday_price: weekday_price,
-                                  wednesday_price: weekday_price,
-                                  thursday_price: weekday_price,
-                                  friday_price: weekend_price,
-                                  saturday_price: weekend_price,
-                                  sunday_price: sunday_price
+
+      weekday_price = 100 * hotel_price_adjustor
+      weekend_price = 150 * hotel_price_adjustor
+      sunday_price = 50 * hotel_price_adjustor
+
+      weekday_price += weekday_price * adjustor
+      weekend_price += weekend_price * adjustor
+      sunday_price += sunday_price * adjustor
+
+      create_bedding_price_type(hotel_id: hotel_id,
+                                bedding_type: bt,
+                                applied_period: Sequel::Postgres::PGRange.new(start, finish),
+                                monday_price: weekday_price,
+                                tuesday_price: weekday_price,
+                                wednesday_price: weekday_price,
+                                thursday_price: weekday_price,
+                                friday_price: weekend_price,
+                                saturday_price: weekend_price,
+                                sunday_price: sunday_price
                                )
     end
 
-    BEDDING_TYPES.each do |bt|
+    BEDDING_TYPES.each do |bt, adjustor|
       weekday_price = 100
       weekend_price = 150
       sunday_price = 50
-      create_base_bedding_price_type(hotel_id: hotel_id, bedding_type: bt,
-                                  monday_price: weekday_price,
-                                  tuesday_price: weekday_price,
-                                  wednesday_price: weekday_price,
-                                  thursday_price: weekday_price,
-                                  friday_price: weekend_price,
-                                  saturday_price: weekend_price,
-                                  sunday_price: sunday_price
-                               )
+
+      weekday_price += weekday_price * adjustor
+      weekend_price += weekend_price * adjustor
+      sunday_price += sunday_price * adjustor
+
+      create_base_bedding_price_type(hotel_id: hotel_id,
+                                     bedding_type: bt,
+                                     monday_price: weekday_price,
+                                     tuesday_price: weekday_price,
+                                     wednesday_price: weekday_price,
+                                     thursday_price: weekday_price,
+                                     friday_price: weekend_price,
+                                     saturday_price: weekend_price,
+                                     sunday_price: sunday_price
+                                    )
     end
   end
 end
