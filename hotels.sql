@@ -57,9 +57,15 @@ create table rooms (
   primary key (hotel_id, section_id, id)
 );
 
+/*
+Bedding type prices create prices per bedding per weekday for a specified period of time
+if there is no specified period of time for a reservation then fall back to
+base_bedding_type_prices table.
+
 -- 1/1 - 12/31
 -- 3/25 - 4/1
 -- 3/24 - 3/25
+*/
 create table bedding_type_prices (
   hotel_id integer not null,
   bedding_type varchar not null references bedding_types(name),
@@ -71,7 +77,7 @@ create table bedding_type_prices (
   friday_price numeric(8,2) not null,
   saturday_price numeric(8,2) not null,
   sunday_price numeric(8,2) not null,
-  primary key (hotel_id, bedding_type, applied_period),
+  primary key (hotel_id, bedding_type, applied_period), -- example of composite primary key
   exclude using gist (hotel_id with =, bedding_type with =, applied_period with &&)
 );
 
