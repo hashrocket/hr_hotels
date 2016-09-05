@@ -63,8 +63,8 @@ BEGIN
       rest_days := ceil(random() * 3) + ceil(random() * 3) + ceil(random() * 3);
       stay_days := ceil(random() * 2) + ceil(random() * 2) + ceil(random() * 2);
 
-      stay_start_date := next_date + (rest_days || ' days')::interval;
-      stay_end_date := stay_start_date + (stay_days || ' days')::interval;
+      stay_start_date := next_date + rest_days * '1 day'::interval;
+      stay_end_date := stay_start_date + stay_days * '1 day'::interval;
 
       next_date := stay_end_date;
       stay_range := daterange(stay_start_date, stay_end_date);
