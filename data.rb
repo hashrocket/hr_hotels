@@ -255,31 +255,22 @@ progressify(progress_bar, 'Customers', CUSTOMER_SIZE) do |progress|
   end
 end
 
-FICTIONAL_TODAY = Date.new(2050, 1, 1)
+def create_bedding_price_types(hotel_id, hotel_price_adjustor)
+  base_weekday_price = 100 * hotel_price_adjustor
+  base_weekend_price = 150 * hotel_price_adjustor
+  base_sunday_price = 50 * hotel_price_adjustor
 
-#******************* Create Hotels ********************
-progressify(progress_bar, 'Hotels', 100) do |progress|
-  100.times do |hotel_index|
-    DB.run("Begin;");
-    start_time = Time.now
-    progress.increment
-    hotel_id, population_price_modifier = create_hotel hotel_index
-
-    DB.run("select create_sections(#{hotel_id}, #{5}, #{NUMBER_OF_ROOMS});");
-
-    hotel_price_adjustor = 1 + population_price_modifier
-
-    base_weekday_price = 100 * hotel_price_adjustor
-    base_weekend_price = 150 * hotel_price_adjustor
-    base_sunday_price = 50 * hotel_price_adjustor
-
+  10.times do |i|
     BEDDING_TYPES.each do |bt, adjustor|
-      start = Date.new(2050,6,1)
-      finish = Date.new(2050,9,1)
 
-      weekday_price = base_weekday_price + base_weekday_price * adjustor
-      weekend_price = base_weekend_price + base_weekend_price * adjustor
-      sunday_price = base_sunday_price + base_sunday_price * adjustor
+      start = Date.new(2040 + i,6,1)
+      finish = Date.new(2040 + i,9,1)
+
+      summer_adjustor = adjustor + 0.2
+
+      weekday_price = base_weekday_price + base_weekday_price * summer_adjustor
+      weekend_price = base_weekend_price + base_weekend_price * summer_adjustor
+      sunday_price = base_sunday_price + base_sunday_price * summer_adjustor
 
       create_bedding_price_type(hotel_id: hotel_id,
                                 bedding_type: bt,
@@ -293,25 +284,44 @@ progressify(progress_bar, 'Hotels', 100) do |progress|
                                 sunday_price: sunday_price
                                )
     end
+  end
 
-    BEDDING_TYPES.each do |bt, adjustor|
-      weekday_price = base_weekday_price + base_weekday_price * adjustor
-      weekend_price = base_weekend_price + base_weekend_price * adjustor
-      sunday_price = base_sunday_price + base_sunday_price * adjustor
+  BEDDING_TYPES.each do |bt, adjustor|
+    weekday_price = base_weekday_price + base_weekday_price * adjustor
+    weekend_price = base_weekend_price + base_weekend_price * adjustor
+    sunday_price = base_sunday_price + base_sunday_price * adjustor
 
-      create_base_bedding_price_type(hotel_id: hotel_id,
-                                     bedding_type: bt,
-                                     monday_price: weekday_price,
-                                     tuesday_price: weekday_price,
-                                     wednesday_price: weekday_price,
-                                     thursday_price: weekday_price,
-                                     friday_price: weekend_price,
-                                     saturday_price: weekend_price,
-                                     sunday_price: sunday_price
-                                    )
-    end
+    create_base_bedding_price_type(hotel_id: hotel_id,
+                                   bedding_type: bt,
+                                   monday_price: weekday_price,
+                                   tuesday_price: weekday_price,
+                                   wednesday_price: weekday_price,
+                                   thursday_price: weekday_price,
+                                   friday_price: weekend_price,
+                                   saturday_price: weekend_price,
+                                   sunday_price: sunday_price
+                                  )
+  end
+end
+
+#******************* Create Hotels ********************
+progressify(progress_bar, 'Hotels', 100) do |progress|
+  100.times do |hotel_index|
+    progress.increment
+    start_time = Time.now
+
+    DB.run("Begin;");
+
+    hotel_id, population_price_modifier = create_hotel hotel_index
+
+    hotel_price_adjustor = 1 + population_price_modifier
+    create_bedding_price_types hotel_id, hotel_price_adjustor
+
+    DB.run("select create_sections(#{hotel_id}, #{5}, #{NUMBER_OF_ROOMS});");
+
 
     DB.run("Commit;")
+
     end_time = Time.now
     puts "Hotel creation time: #{end_time - start_time}"
   end
