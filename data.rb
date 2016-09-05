@@ -260,6 +260,7 @@ FICTIONAL_TODAY = Date.new(2050, 1, 1)
 #******************* Create Hotels ********************
 progressify(progress_bar, 'Hotels', 100) do |progress|
   100.times do |hotel_index|
+    DB.run("Begin;");
     start_time = Time.now
     progress.increment
     hotel_id, population_price_modifier = create_hotel hotel_index
@@ -314,6 +315,7 @@ progressify(progress_bar, 'Hotels', 100) do |progress|
                                     )
     end
 
+    DB.run("Commit;")
     end_time = Time.now
     puts "Hotel creation time: #{end_time - start_time}"
   end
