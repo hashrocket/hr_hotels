@@ -255,6 +255,8 @@ progressify(progress_bar, 'Customers', CUSTOMER_SIZE) do |progress|
   end
 end
 
+FICTIONAL_TODAY = Date.new(2050, 1, 1)
+
 progressify(progress_bar, 'Hotels', 100) do |progress|
   100.times do |hotel_index|
     progress.increment
@@ -266,14 +268,18 @@ progressify(progress_bar, 'Hotels', 100) do |progress|
       # TODO: batch insert the reservations
       NUMBER_OF_ROOMS.times do |room_number|
         room_id = create_room(hotel_id: hotel_id, section_id: section_id, name: "#{floor}#{sprintf(ROOM_NUMBER_FORMAT, room_number)}").dig(0, :id)
-        range = Sequel::Postgres::PGRange.new(Date.new(2050, 1, 1), Date.new(2050, 1, 4))
+        range = Sequel::Postgres::PGRange.new(FICTIONAL_TODAY, FICTIONAL_TODAY + 3)
         create_reservation(hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: range)
         create_reservation(hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: two_day_stay_in_january_2050)
+
+        next_date = FICTIONAL_TODAY - 10 * 365
+
+        statement = "select create_reservations(#{room_id}, '#{next_date}'::date, '#{FICTIONAL_TODAY}'::date);"
+        result = DB.run(statement);
       end
     end
 
     hotel_price_adjustor = 1 + population_price_modifier
-    puts hotel_price_adjustor
 
     BEDDING_TYPES.each do |bt, adjustor|
       start = Date.new(2050,6,1)
