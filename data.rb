@@ -257,27 +257,14 @@ end
 
 FICTIONAL_TODAY = Date.new(2050, 1, 1)
 
+#******************* Create Hotels ********************
 progressify(progress_bar, 'Hotels', 100) do |progress|
   100.times do |hotel_index|
+    start_time = Time.now
     progress.increment
     hotel_id, population_price_modifier = create_hotel hotel_index
 
-    5.times do |floor|
-      section_id = create_section(hotel_id: hotel_id, floor: floor, name: "Floor #{floor}").dig(0, :id)
-
-      # TODO: batch insert the reservations
-      NUMBER_OF_ROOMS.times do |room_number|
-        room_id = create_room(hotel_id: hotel_id, section_id: section_id, name: "#{floor}#{sprintf(ROOM_NUMBER_FORMAT, room_number)}").dig(0, :id)
-        range = Sequel::Postgres::PGRange.new(FICTIONAL_TODAY, FICTIONAL_TODAY + 3)
-        create_reservation(hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: range)
-        create_reservation(hotel_id: hotel_id, section_id: section_id, room_id: room_id, days: two_day_stay_in_january_2050)
-
-        next_date = FICTIONAL_TODAY - 10 * 365
-
-        statement = "select create_reservations(#{room_id}, '#{next_date}'::date, '#{FICTIONAL_TODAY}'::date);"
-        result = DB.run(statement);
-      end
-    end
+    DB.run("select create_sections(#{hotel_id}, #{5}, #{NUMBER_OF_ROOMS});");
 
     hotel_price_adjustor = 1 + population_price_modifier
 
@@ -326,5 +313,8 @@ progressify(progress_bar, 'Hotels', 100) do |progress|
                                      sunday_price: sunday_price
                                     )
     end
+
+    end_time = Time.now
+    puts "Hotel creation time: #{end_time - start_time}"
   end
 end

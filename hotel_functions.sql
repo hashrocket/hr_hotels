@@ -23,44 +23,29 @@ BEGIN
 END;
 $$  LANGUAGE plpgsql;
 
-CREATE or REPLACE FUNCTION create_reservations(room_id int, start_date date, end_date date)
+CREATE or REPLACE FUNCTION create_sections(section_hotel_id int, sections_num int, rooms_num int)
 RETURNS VOID AS $$
-DECLARE
-  next_date date;
-  rest_days int;
-  stay_days int;
-  stay_start_date date;
-  stay_end_date date;
-  stay_range daterange;
-  reservation_hotel_id int;
-  reservation_section_id int;
-  customer_id int;
+DECLARE returned_section_id int;
 BEGIN
-  next_date := start_date;
-
-  WHILE (next_date < end_date)
-  LOOP
-      rest_days := ceil(random() * 3) + ceil(random() * 3) + ceil(random() * 3);
-      stay_days := ceil(random() * 2) + ceil(random() * 2) + ceil(random() * 2);
-      stay_start_date := next_date + (rest_days || ' days')::interval;
-      stay_end_date := stay_start_date + (stay_days || ' days')::interval;
-      next_date := stay_end_date;
-      stay_range := daterange(stay_start_date, stay_end_date);
-
-      select hotel_id into reservation_hotel_id from rooms where id = room_id;
-      select section_id into reservation_section_id from rooms where id = room_id;
-
-      customer_id := ceil(random() * 1000);
-
-      IF ( stay_end_date < end_date) THEN
-        insert into reservations(hotel_id, section_id, room_id, days, customer_id) values
-        (reservation_hotel_id, reservation_section_id, room_id, stay_range, customer_id);
-      END IF;
-  END LOOP;
+  for floor_num in 1..sections_num loop
+    insert into sections (hotel_id, name, floor) values (section_hotel_id, 'Floor ' || floor_num, floor_num) returning id into returned_section_id;
+    perform create_rooms(section_hotel_id, returned_section_id, floor_num, rooms_num);
+  end loop;
 END;
-$$  LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
-CREATE or REPLACE FUNCTION create_rooms(hotel_id int, start_date date, end_date date)
+CREATE or REPLACE FUNCTION create_rooms(room_hotel_id int, room_section_id int, floor_num int, rooms_num int)
+RETURNS VOID AS $$
+DECLARE returned_room_id int;
+BEGIN
+  for i in 1..rooms_num loop
+    insert into rooms (hotel_id, name, section_id, bedding_type) values (room_hotel_id, floor_num, room_section_id, (select name from bedding_types order by random() limit 1)) returning id into returned_room_id;
+    perform create_reservations(returned_room_id, room_hotel_id, room_section_id, '2040-1-1'::date, '2050-1-1'::date);
+  end loop;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE or REPLACE FUNCTION create_reservations(room_id int, room_hotel_id int, room_section_id int, start_date date, end_date date)
 RETURNS VOID AS $$
 DECLARE
   next_date date;
@@ -69,8 +54,6 @@ DECLARE
   stay_start_date date;
   stay_end_date date;
   stay_range daterange;
-  reservation_hotel_id int;
-  reservation_section_id int;
   customer_id int;
 BEGIN
   next_date := start_date;
@@ -79,19 +62,18 @@ BEGIN
   LOOP
       rest_days := ceil(random() * 3) + ceil(random() * 3) + ceil(random() * 3);
       stay_days := ceil(random() * 2) + ceil(random() * 2) + ceil(random() * 2);
+
       stay_start_date := next_date + (rest_days || ' days')::interval;
       stay_end_date := stay_start_date + (stay_days || ' days')::interval;
+
       next_date := stay_end_date;
       stay_range := daterange(stay_start_date, stay_end_date);
-
-      select hotel_id into reservation_hotel_id from rooms where id = room_id;
-      select section_id into reservation_section_id from rooms where id = room_id;
 
       customer_id := ceil(random() * 1000);
 
       IF ( stay_end_date < end_date) THEN
         insert into reservations(hotel_id, section_id, room_id, days, customer_id) values
-        (reservation_hotel_id, reservation_section_id, room_id, stay_range, customer_id);
+        (room_hotel_id, room_section_id, room_id, stay_range, customer_id);
       END IF;
   END LOOP;
 END;
