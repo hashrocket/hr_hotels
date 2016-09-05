@@ -269,17 +269,17 @@ progressify(progress_bar, 'Hotels', 100) do |progress|
 
     hotel_price_adjustor = 1 + population_price_modifier
 
+    base_weekday_price = 100 * hotel_price_adjustor
+    base_weekend_price = 150 * hotel_price_adjustor
+    base_sunday_price = 50 * hotel_price_adjustor
+
     BEDDING_TYPES.each do |bt, adjustor|
       start = Date.new(2050,6,1)
       finish = Date.new(2050,9,1)
 
-      weekday_price = 100 * hotel_price_adjustor
-      weekend_price = 150 * hotel_price_adjustor
-      sunday_price = 50 * hotel_price_adjustor
-
-      weekday_price += weekday_price * adjustor
-      weekend_price += weekend_price * adjustor
-      sunday_price += sunday_price * adjustor
+      weekday_price = base_weekday_price + base_weekday_price * adjustor
+      weekend_price = base_weekend_price + base_weekend_price * adjustor
+      sunday_price = base_sunday_price + base_sunday_price * adjustor
 
       create_bedding_price_type(hotel_id: hotel_id,
                                 bedding_type: bt,
@@ -295,13 +295,9 @@ progressify(progress_bar, 'Hotels', 100) do |progress|
     end
 
     BEDDING_TYPES.each do |bt, adjustor|
-      weekday_price = 100 * hotel_price_adjustor
-      weekend_price = 150 * hotel_price_adjustor
-      sunday_price = 50 * hotel_price_adjustor
-
-      weekday_price += weekday_price * adjustor
-      weekend_price += weekend_price * adjustor
-      sunday_price += sunday_price * adjustor
+      weekday_price = base_weekday_price + base_weekday_price * adjustor
+      weekend_price = base_weekend_price + base_weekend_price * adjustor
+      sunday_price = base_sunday_price + base_sunday_price * adjustor
 
       create_base_bedding_price_type(hotel_id: hotel_id,
                                      bedding_type: bt,
